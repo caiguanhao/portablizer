@@ -1,0 +1,22 @@
+ZIPFILE="portablizer-linux-$(ARCH).zip"
+
+all: clean build package printmd5sum
+
+clean:
+	@echo "Running clean up..."
+	rm -rf dist build
+
+build:
+	@echo "Building..."
+	pyinstaller -y spec.linux.spec
+
+package:
+	@echo "Making archive..." && cd dist && \
+	(echo -e "Portablizer for Linux $(ARCH)\n" \
+	| zip $(ZIPFILE) -r Portablizer -z)
+
+printmd5sum:
+	@echo "Completed! Here's the MD5SUM of $(ZIPFILE):" && \
+	(md5sum dist/$(ZIPFILE) | cut -c 1-32)
+
+.PHONY: all clean package build printmd5sum
