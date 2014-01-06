@@ -2,6 +2,7 @@
 
 NODE_VER="v0.10.24"
 NODE_DIST="http://nodejs.org/dist/${NODE_VER}"
+NODE_DIR="node"
 
 if [ "$OS" = "Windows_NT" ]; then
   PLATFORM="win"
@@ -97,14 +98,17 @@ if [ ! -f "$NODE_FILE" ]; then
   $DOWNLOAD $NODE_DIST
 fi
 
+if [ ! -d "$NODE_DIR" ]; then
+  mkdir "$NODE_DIR"
+fi
+
 if [ ! -z "$NODE_TAR_GZ" ]; then
   echo "Extracting archive..."
   tar xfvz "$NODE_TAR_GZ"
   cp "${NODE_TAR_GZ%.*.*}/bin/node" "node/node.exe"
   rm -rf "${NODE_TAR_GZ%.*.*}"
 else
-  cp "${NODE_FILE}" "node/node.exe"
-  rm -f "${NODE_FILE}"
+  mv "${NODE_FILE}" "node/node.exe"
 fi
 
 echo "Binary downloaded."

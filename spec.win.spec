@@ -11,10 +11,12 @@ exe = EXE(pyz,
           strip=None,
           upx=True,
           console=False)
+node = Tree('node', prefix='node')
 collect = COLLECT(exe,
                   a.binaries,
                   a.zipfiles,
                   a.datas,
+                  node,
                   strip=None,
                   upx=True,
                   name='Portablizer')

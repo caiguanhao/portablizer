@@ -11,10 +11,12 @@ exe = EXE(pyz,
           strip=None,
           upx=True,
           console=True)
+node = Tree('node', prefix='node')
 bundle = BUNDLE(exe,
                 a.binaries,
                 a.zipfiles,
                 a.datas,
+                node,
                 info_plist={
                   'NSHighResolutionCapable': 'True',
                   'LSBackgroundOnly': '0'
