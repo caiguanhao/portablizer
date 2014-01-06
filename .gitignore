@@ -1,3 +1,5 @@
 build
 dist
 node
+*.tar.gz
+*.exe

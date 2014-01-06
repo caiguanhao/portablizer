@@ -1,0 +1,112 @@
+#!/bin/sh
+
+NODE_VER="v0.10.24"
+NODE_DIST="http://nodejs.org/dist/${NODE_VER}"
+
+if [ "$OS" = "Windows_NT" ]; then
+  PLATFORM="win"
+  if [ "$PROCESSOR_ARCHITEW6432" = "AMD64" ]; then
+    ARCH="x64"
+  else
+    if [ "$PROCESSOR_ARCHITECTURE" = "AMD64" ]; then
+      ARCH="x64"
+    else
+      if [ "$PROCESSOR_ARCHITECTURE" = "x86" ]; then
+        ARCH="x86"
+      fi
+    fi
+  fi
+else
+  UNAME_S=`uname -s`
+  UNAME_A=`uname -a`
+  if [ "$UNAME_S" = "Linux" ]; then
+    PLATFORM="linux"
+    if [[ "$UNAME_A" == *x86_64* ]]; then
+      ARCH="x64"
+    else
+      ARCH="x86"
+    fi
+  fi
+  if [ "$UNAME_S" = "Darwin" ]; then
+    PLATFORM="darwin"
+  fi
+  if [ -z "$ARCH" ]; then
+    if [ "$(arch)" = "x86_64" ]; then
+      ARCH="x64"
+    else
+      ARCH="x86"
+    fi
+  fi
+fi
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --platform|-p)
+      shift
+      if [[ $# -gt 0 ]]; then
+        PLATFORM="$1"
+        shift
+      else
+        echo "Missing platform [win,darwin,linux]."
+        exit 1
+      fi
+      ;;
+    --architecture|-arch|-a)
+        shift
+        if [[ $# -gt 0 ]]; then
+          ARCH="$1"
+          shift
+        else
+          echo "Missing architecture [x86,x64]."
+          exit 1
+        fi
+        ;;
+    *)
+        echo "Please provide --platform [win,darwin,linux] and/or --architecture [x86,x64]."
+        exit
+        ;;
+  esac
+done
+
+case "$PLATFORM-$ARCH" in
+  win-x86)
+    NODE_FILE="node.exe"
+    NODE_DIST="${NODE_DIST}/${NODE_FILE}"
+    ;;
+  win-x64)
+    NODE_FILE="node.exe"
+    NODE_DIST="${NODE_DIST}/x64/${NODE_FILE}"
+    ;;
+  linux-x86|linux-x64|darwin-x86|darwin-x64)
+    NODE_TAR_GZ="node-${NODE_VER}-${PLATFORM}-${ARCH}.tar.gz"
+    NODE_FILE="$NODE_TAR_GZ"
+    NODE_DIST="${NODE_DIST}/${NODE_FILE}"
+    ;;
+  *)
+    echo "No such platform/architecture."
+    exit 1
+    ;;
+esac
+
+if [ ! -f "$NODE_FILE" ]; then
+  DOWNLOAD="$(which curl) -# -C - -L -O"
+  if [ -z "$DOWNLOAD" ]; then
+    DOWNLOAD="$(which wget) --continue"
+  fi
+  echo Downloading $NODE_DIST ...
+  $DOWNLOAD $NODE_DIST
+fi
+
+if [ ! -z "$NODE_TAR_GZ" ]; then
+  echo "Extracting archive..."
+  tar xfvz "$NODE_TAR_GZ"
+  cp "${NODE_TAR_GZ%.*.*}/bin/node" "node/node.exe"
+  rm -rf "${NODE_TAR_GZ%.*.*}"
+else
+  cp "${NODE_FILE}" "node/node.exe"
+  rm -f "${NODE_FILE}"
+fi
+
+echo "Binary downloaded."
+
+exit 0
