@@ -53,19 +53,19 @@ while [[ $# -gt 0 ]]; do
       fi
       ;;
     --architecture|-arch|-a)
+      shift
+      if [[ $# -gt 0 ]]; then
+        ARCH="$1"
         shift
-        if [[ $# -gt 0 ]]; then
-          ARCH="$1"
-          shift
-        else
-          echo "Missing architecture [x86,x64]."
-          exit 1
-        fi
-        ;;
+      else
+        echo "Missing architecture [x86,x64]."
+        exit 1
+      fi
+      ;;
     *)
-        echo "Please provide --platform [win,darwin,linux] and/or --architecture [x86,x64]."
-        exit
-        ;;
+      echo "Please provide --platform [win,darwin,linux] and/or --architecture [x86,x64]."
+      exit
+      ;;
   esac
 done
 
@@ -90,12 +90,13 @@ case "$PLATFORM-$ARCH" in
 esac
 
 if [ ! -f "$NODE_FILE" ]; then
-  DOWNLOAD="$(which curl) -# -C - -L -O"
+  DOWNLOAD="$(which curl) -# -C - -L -o temp"
   if [ -z "$DOWNLOAD" ]; then
-    DOWNLOAD="$(which wget) --continue"
+    DOWNLOAD="$(which wget) --continue -O temp"
   fi
   echo Downloading $NODE_DIST ...
   $DOWNLOAD $NODE_DIST
+  mv "temp" "$NODE_FILE"
 fi
 
 if [ ! -d "$NODE_DIR" ]; then
@@ -105,12 +106,15 @@ fi
 if [ ! -z "$NODE_TAR_GZ" ]; then
   echo "Extracting archive..."
   tar xfvz "$NODE_TAR_GZ"
+  echo "Copying binary file..."
   cp "${NODE_TAR_GZ%.*.*}/bin/node" "node/node.exe"
+  echo "Remove ${NODE_TAR_GZ%.*.*}..."
   rm -rf "${NODE_TAR_GZ%.*.*}"
 else
-  mv "${NODE_FILE}" "node/node.exe"
+  echo "Copying binary file..."
+  cp "${NODE_FILE}" "node/node.exe"
 fi
 
-echo "Binary downloaded."
+echo "Done."
 
 exit 0
