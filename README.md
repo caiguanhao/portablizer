@@ -6,13 +6,16 @@ Make a web app portable.
 Build
 -----
 
+You can run ``./configure`` to download stable node binary for your system. In Ubuntu, it will also help you install dependencies.
+
 ### Ubuntu Linux
 
 It is recommended to build on system with lower version of glibc (for better compatibility) and can download Qt4 binaries (for faster building process), for example, Ubuntu 10.04.
 
     $ sudo apt-get update
-    $ sudo apt-get install build-essential python-pip pyqt4-dev-tools git-core
+    $ sudo apt-get install build-essential python-dev python-pip pyqt4-dev-tools git-core
     $ sudo pip install pyinstaller
+    $ sudo easy_install psutil
     $ git clone https://github.com/caiguanhao/portablizer.git
     $ cd portablizer
     $ make
@@ -27,7 +30,7 @@ You may need to use python2.7 to compile both SIP and PyQt5, because PyInstaller
         –sip-incdir /usr/local/Cellar/python/2.7.5/Frameworks/Python.framework/Versions/2.7/include/python2.7/
         –sip /usr/local/Cellar/python/2.7.5/Frameworks/Python.framework/Versions/2.7/bin/sip
 
-App built with PyInstaller may have some little problems, you can use my [fork of PyInstaller](https://github.com/caiguanhao/pyinstaller).
+App built with PyInstaller may have some little problems, you can use my [fork of PyInstaller](https://github.com/caiguanhao/pyinstaller). You may need to install other packages via pip or easy_install, please refer to the Ubuntu/Linux section.
 
 ### Windows
 
@@ -42,4 +45,5 @@ App built with PyInstaller may have some little problems, you can use my [fork o
 * Download [PyInstaller](http://www.pyinstaller.org/) and extract it to C:\\. Use mintty to install: cd to that folder and run *python setup.py install*.
 * If you are using Windows XP, an error occurs and you may need to uncomment several lines (248~251) in C:\\Python27\\Lib\\mimetypes.py. You can search Google for this error.
 * Download and install [PyQt4 binary package for Windows Py2.7](http://www.riverbankcomputing.co.uk/software/pyqt/download)
+* You may need to install other packages via pip or easy_install, please refer to the Ubuntu/Linux section.
 * You may now able to make: *cd /c/home*, *git clone https://github.com/caiguanhao/portablizer.git*, *cd portablizer*, *make*.
