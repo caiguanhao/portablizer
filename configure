@@ -18,21 +18,23 @@ if [ "$OS" = "Windows_NT" ]; then
     fi
   fi
 else
-  UNAME_S=`uname -s`
-  UNAME_A=`uname -a`
+  UNAME_S="`uname -s`"
   if [ "$UNAME_S" = "Linux" ]; then
     PLATFORM="linux"
-    if [[ "$UNAME_A" == *x86_64* ]]; then
-      ARCH="x64"
-    else
-      ARCH="x86"
-    fi
   fi
   if [ "$UNAME_S" = "Darwin" ]; then
     PLATFORM="darwin"
   fi
-  if [ -z "$ARCH" ]; then
+  ARCH="`which arch`"
+  if [ ! -z "$ARCH" ]; then
     if [ "$(arch)" = "x86_64" ]; then
+      ARCH="x64"
+    else
+      ARCH="x86"
+    fi
+  else
+    ARCH="`uname -m`"
+    if [ "$ARCH" = "x86_64" ]; then
       ARCH="x64"
     else
       ARCH="x86"
@@ -40,11 +42,11 @@ else
   fi
 fi
 
-while [[ $# -gt 0 ]]; do
+while [ $# -gt 0 ]; do
   case "$1" in
     --platform|-p)
       shift
-      if [[ $# -gt 0 ]]; then
+      if [ $# -gt 0 ]; then
         PLATFORM="$1"
         shift
       else
@@ -54,7 +56,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --architecture|-arch|-a)
       shift
-      if [[ $# -gt 0 ]]; then
+      if [ $# -gt 0 ]; then
         ARCH="$1"
         shift
       else
@@ -104,15 +106,21 @@ if [ ! -d "$NODE_DIR" ]; then
 fi
 
 if [ ! -z "$NODE_TAR_GZ" ]; then
+
   echo "Extracting archive..."
-  tar xfvz "$NODE_TAR_GZ"
-  echo "Copying binary file..."
+  tar xfvz "$NODE_TAR_GZ" > /dev/null
+
+  echo "Copying ${NODE_TAR_GZ%.*.*}/bin/node to node/node.exe..."
   cp "${NODE_TAR_GZ%.*.*}/bin/node" "node/node.exe"
+
   echo "Remove ${NODE_TAR_GZ%.*.*}..."
   rm -rf "${NODE_TAR_GZ%.*.*}"
+
 else
-  echo "Copying binary file..."
+
+  echo "Copying ${NODE_FILE} node/node.exe..."
   cp "${NODE_FILE}" "node/node.exe"
+
 fi
 
 echo "Done."
