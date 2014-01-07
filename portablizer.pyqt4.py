@@ -3,8 +3,7 @@ import sys
 import pkg_resources # make PyInstaller import this
 import psutil
 import subprocess
-import time
-import threading
+import socket
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -29,14 +28,25 @@ class Portablizer(QMainWindow):
     self.browser.load(QUrl(url))
 
 if getattr(sys, 'frozen', False):
-  basedir = sys._MEIPASS
+  basedir = sys._MEIPASS # PyInstaller path
 else:
   basedir = os.path.dirname(os.path.abspath(__file__))
 
 def nodedir(file):
   return os.path.join(basedir, "node", file)
 
-nodeurl = 'http://127.0.0.1:3000/'
+# if you call this function,
+# system would ask user for internet permission for the first time
+def findAvailablePort():
+  newSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  newSocket.bind(("", 0))
+  newSocket.listen(1)
+  newPort = newSocket.getsockname()[1]
+  newSocket.close()
+  return newPort
+
+port = str(findAvailablePort())
+nodeurl = 'http://127.0.0.1:' + port + '/'
 
 app = QApplication([])
 app.setApplicationName('Portablizer')
@@ -52,7 +62,7 @@ for proc in psutil.process_iter():
   except:
     pass
 
-# hide console window only in Windows exe
+# hide console window only in Windows exe, so don't use stdout in latter code
 startupinfo = None
 try:
   startupinfo = subprocess.STARTUPINFO()
@@ -60,32 +70,25 @@ try:
 except:
   pass
 
-# can't use stdout in Windows because there is no console
 nodeprocess = None
 try:
-  subp = [nodedir("node.exe"), nodedir("app.js")]
-  if startupinfo is not None:
-    nodeprocess = subprocess.Popen(subp, startupinfo=startupinfo)
-  else:
-    nodeprocess = subprocess.Popen(subp, stdout=subprocess.PIPE)
+  env = os.environ.copy()
+  env['PORTABLIZER_PORT'] = port
+  nodeprocess = subprocess.Popen([nodedir("node.exe"), nodedir("app.js")],
+    startupinfo=startupinfo, env=env)
 except:
-  QMessageBox.warning(portablizer, "Error", "The application is missing required files. You need to re-install it.")
+  QMessageBox.warning(portablizer, "Error",
+    "The application is missing required files. You need to re-install it.")
   if hasattr(nodeprocess, 'kill'):
     nodeprocess.kill()
   sys.exit(1)
 
 portablizer.show()
 portablizer.startBrowser()
-
-if startupinfo is not None:
-  # in Windows, delay one second
-  threading.Timer(1, portablizer.goto(nodeurl))
-else:
-  # in unix, read node output, when server is ready, goto page
-  for line in iter(nodeprocess.stdout.readline, ''):
-    if "3000" in line:
-      portablizer.goto(nodeurl)
-      break
+portablizer.browser.setHtml('''
+  <script>setTimeout(function(){ window.location.href="%s"; }, 1000);</script>
+  <strong>Loading...</strong>
+  ''' % nodeurl)
 
 menubar = portablizer.menuBar()
 helpMenu = menubar.addMenu('&Options')
