@@ -13,9 +13,9 @@ ifeq ($(OS), Windows_NT)
 	include Makefile.Windows
 else
 	UNAME_S := $(shell uname -s)
-	UNAME_A := $(shell uname -a)
+	UNAME_M := $(shell uname -m)
 	ifeq ($(UNAME_S), Linux)
-		ifeq ($(findstring x86_64, $(UNAME_A)), x86_64)
+		ifeq ($(UNAME_M), x86_64)
 			ARCH="64bit"
 		else
 			ARCH="32bit"
